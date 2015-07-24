@@ -21,6 +21,42 @@ String.prototype.toStarryMobile = function(length){
 		return result.join("").toString();
 	});
 };
+//数组排序算法
+Array.prototype.Sort = function(type){
+	switch(type){
+		case 1:
+			for(var i = 1; i < this.length; i++){
+				for(var j = 0; j < i ; j++){
+					if(this[j] > this[i]){
+						var temp = this[j];
+						this[j] = this[i];
+						this[i] = temp;
+					}
+				}
+			}
+			return this;
+		case 2:
+			for(var i = 0; i < this.length; i++){
+				for(var j = i + 1; j < this.length; j++){
+					if(this[j] > this[j + 1]){
+						var temp = this[i];
+						this[i] = this[i + 1];
+						this[i + 1] = temp;
+					}
+				}
+			}
+			return this;
+		default:
+			return this.sort();
+	}
+};
+//数组去重算法
+Array.prototype.derepeat = function(){
+	for(var i = 0; i < this.length; i++){
+		//if(this[i])
+	}
+	return this;
+};
 //时间字符串格式化
 //计算时间差并转换为固定格式,timeDiff(开始时间[,结束时间]),没有结束时间默认结束时间为当前时间
 function DateFormat(){
@@ -112,3 +148,13 @@ Storage.prototype = {
 		localStorage.clear();
 	}
 };
+//手机标准单位
+function Mobile(){
+	this.setRem();
+}
+Mobile.prototype = {
+	constructor : Mobile,
+	setRem : function(){
+		document.documentElement.style.fontSize = window.innerWidth/16 + "px";
+	}
+}
