@@ -1,4 +1,27 @@
-﻿//字符串方法拓展
+﻿//数据寄存器
+function ObjectCache(){}
+//对象方法拓展
+ function extend(subClass, supClass){
+	var F = function(){};
+	F.prototype = supClass.prototype;
+	subClass.prototype = new F();
+	subClass.prototype.constructor = this;
+	subClass.superclass = superClass.prototype;
+	if(supClass.prototype.constructor === Object.prototype.constructor){
+		supClass.prototype.constructor = supClass;
+	}
+};
+//根据类名查找树节点
+function getElementsByClassName(parentNode, elementType, className){
+	var elements = parentNode.getElementsByTagName(elementType), returnElement = new Array();
+	for(var i = 0; i < elements.length; i++){
+		if(elements[i].className.indexOf(className) + 1){
+			returnElement[returnElement.length] = elements[i];
+		}
+	}
+	return returnElement;
+};
+//字符串方法拓展
 //返回boolean类型值的匹配方法,isMatched(匹配类型)
 String.prototype.isMatched = function(type){
 	switch(type = type.toLowerCase()){
@@ -52,10 +75,57 @@ Array.prototype.Sort = function(type){
 };
 //数组去重算法
 Array.prototype.derepeat = function(){
+	var newArr = new Array();
 	for(var i = 0; i < this.length; i++){
-		//if(this[i])
+		var temp = this[i], isRepeat = 0;
+		for(var j = i + 1; j < this.length; j++){
+			if(this[j] === this[i]){
+				isRepeat += 1;
+			}
+		}
+		if(!isRepeat){
+			newArr[newArr.length] = this[i];
+		}
 	}
-	return this;
+	return newArr;
+};
+//JSON类
+
+//Ajax类
+function Ajax(obj){
+	if(typeof obj === "object"){
+		this.receiveData = obj;
+		this.transportData();
+	}else{
+		console.log("Ajax:wrong argument");
+	}
+}
+Ajax.prototype = {
+	constructor : Ajax,
+	transportData : function(){
+		var xhr = new XMLHttpRequest(), _this = this;
+		xhr.open(this.receiveData.type, this.receiveData.url, this.receiveData.asnyc || true);
+		xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+		xhr.onreadystatechange = function(){
+			if(xhr.readyState === 4){
+				var responseText = _this.receiveData.dataType && _this.receiveData.dataType.toLowerCase() === "json" ? eval("(" + xhr.responseText + ")") : xhr.responseText;
+				if(xhr.status === 200){
+					if(_this.receiveData.success){
+						_this.receiveData.success(responseText);
+					}
+				}else{
+					if(_this.receiveData.failure){
+						_this.receiveData.failure(responseText);	
+					}
+				}
+			}
+		};
+		if(this.receiveData.data){
+			xhr.send(this.receiveData.data);
+		}else{
+			xhr.send(null);
+		}
+	}
 };
 //时间字符串格式化
 //计算时间差并转换为固定格式,timeDiff(开始时间[,结束时间]),没有结束时间默认结束时间为当前时间
