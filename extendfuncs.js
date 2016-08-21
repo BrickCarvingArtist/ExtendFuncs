@@ -92,41 +92,69 @@ Array.prototype.derepeat = function(){
 //JSON类
 
 //Ajax类
-function Ajax(obj){
-	if(typeof obj === "object"){
-		this.receiveData = obj;
-		this.transportData();
-	}else{
-		console.log("Ajax:wrong argument");
+function ajax(option){
+	var jsonp = option.jsonp,
+		success = option.success,
+		xhr = new XMLHttpRequest(),
+		type = option.type,
+		url = option.url,
+		dataType = option.dataType,
+		strQuery = queryString(option.data),
+		readyState = [],
+		loadingFunction = option.loading,
+		successFunction = option.success,
+		errorFunction = option.error,
+		body = document.body;
+	function queryString(object){
+		var arrQuery = [];
+		for(var i in object){
+			arrQuery.push("&" + i + "=" + object[i]);
+		}
+		return arrQuery.join("").slice(1);
 	}
-}
-Ajax.prototype = {
-	constructor : Ajax,
-	transportData : function(){
-		var xhr = new XMLHttpRequest(), _this = this;
-		xhr.open(this.receiveData.type, this.receiveData.url, this.receiveData.asnyc || true);
-		xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-		xhr.onreadystatechange = function(){
-			if(xhr.readyState === 4){
-				var responseText = _this.receiveData.dataType && _this.receiveData.dataType.toLowerCase() === "json" ? eval("(" + xhr.responseText + ")") : xhr.responseText;
-				if(xhr.status === 200){
-					if(_this.receiveData.success){
-						_this.receiveData.success(responseText);
-					}
-				}else{
-					if(_this.receiveData.failure){
-						_this.receiveData.failure(responseText);	
-					}
-				}
-			}
-		};
-		if(this.receiveData.data){
-			xhr.send(this.receiveData.data);
+	function loading(readyState){
+		typeof loadingFunction === "function" && loadingFunction(readyState);
+	}
+	function success(responseText){
+		typeof successFunction === "function" && successFunction(responseText);
+	}
+	function error(responseText){
+		typeof errorFunction === "function" && errorFunction(responseText);
+	}
+	function afterOpen(){}
+	function afterSend(){}
+	function beforeGet(){}
+	function alreadyGet(){
+		var responseText = dataType && dataType === "text" ? xhr.responseText : JSON.parse(xhr.responseText);
+		if(xhr.status === 200){
+			success(responseText);
 		}else{
-			xhr.send(null);
+			error(responseText);
 		}
 	}
-};
+	if(jsonp){
+		jsonpCallback = function(data){
+			jsonpData = data;
+		};
+		var script = document.createElement("script");
+		script.src = url;
+		script.onload = function(){
+			option.success(jsonpData);
+			body.removeChild(this);
+			delete jsonpCallback;
+			delete jsonpData;
+		};
+		body.appendChild(script);
+		return;
+	}
+	xhr.onreadystatechange = function(){
+		loading(xhr.readyState);
+		[, afterOpen, afterSend, beforeGet, alreadyGet][xhr.readyState]();
+	};
+	xhr.open(type || "get", url + (type === "post" ? "" : strQuery ? "?" + strQuery : ""), option.asnyc || 1);
+	strQuery && type === "post" && xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+	xhr.send(strQuery && type === "post" ? strQuery : null);
+}
 //时间字符串格式化
 //计算时间差并转换为固定格式,timeDiff(开始时间[,结束时间]),没有结束时间默认结束时间为当前时间
 function DateFormat(){
