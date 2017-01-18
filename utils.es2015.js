@@ -22,33 +22,31 @@ const fetch = window.fetch || (() => {
 				"Content-Type": "application/x-www-form-urlencoded"
 			}
 		][+(type === "post")]
-	}) => {
-		return new Promise((resolve, reject) => {
-			if(jsonp){
-				const script = document.createElement("script");
-				data = serialize(data);
-				script.src = `${url}?type=jsonp&id=${id}${[`&${data}`, ""][+!data.length]}`;
-				window[["jsonpCallback_", id].join("")] = data => {
-					resolve(format(data));
-				};
-				body.appendChild(script);
-				return id++;
-			}
-			const xhr = new XMLHttpRequest;
-			xhr.onreadystatechange = () => {
-				if(xhr.readyState === 4){
-					if(xhr.status >= 200 && xhr.status < 300){
-						resolve(format(xhr.responseText));
-					}else{
-						reject(xhr.responseText);
-					}
-				}
+	}) => new Promise((resolve, reject) => {
+		if(jsonp){
+			const script = document.createElement("script");
+			data = serialize(data);
+			script.src = `${url}?type=jsonp&id=${id}${[`&${data}`, ""][+!data.length]}`;
+			window[["jsonpCallback_", id].join("")] = data => {
+				resolve(format(data));
 			};
-			xhr.open(type, `${url}${["", `?${serialize(data)}`][+(type === "get")]}`, async);
-			for(let a in headers){
-				xhr.setRequestHeader(a, headers[a]);
+			body.appendChild(script);
+			return id++;
+		}
+		const xhr = new XMLHttpRequest;
+		xhr.onreadystatechange = () => {
+			if(xhr.readyState === 4){
+				if(xhr.status >= 200 && xhr.status < 300){
+					resolve(format(xhr.responseText));
+				}else{
+					reject(xhr.responseText);
+				}
 			}
-			xhr.send([serialize(data), null][+(type === "get")]);
-		});
-	};
+		};
+		xhr.open(type, `${url}${["", `?${serialize(data)}`][+(type === "get")]}`, async);
+		for(let a in headers){
+			xhr.setRequestHeader(a, headers[a]);
+		}
+		xhr.send([serialize(data), null][+(type === "get")]);
+	});
 })();
