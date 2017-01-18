@@ -23,7 +23,6 @@ const fetch = window.fetch || (() => {
 			}
 		][+(type === "post")]
 	}) => {
-		id++;
 		return new Promise((resolve, reject) => {
 			if(jsonp){
 				const script = document.createElement("script");
@@ -32,7 +31,8 @@ const fetch = window.fetch || (() => {
 				window[["jsonpCallback_", id].join("")] = data => {
 					resolve(format(data));
 				};
-				return body.appendChild(script);
+				body.appendChild(script);
+				return id++;
 			}
 			const xhr = new XMLHttpRequest;
 			xhr.onreadystatechange = () => {
